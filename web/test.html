@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<script type="text/javascript">
+		
+			// 自制的ActiveXObject构造方法
+			function createXMLHttpRequest() {
+		        var xmlHttp;
+		        // 适用于大多数浏览器，以及IE7和IE更高版本
+		        try{
+		            xmlHttp = new XMLHttpRequest();
+		        } catch (e) {
+		            // 适用于IE6
+		            try {
+		                xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+		            } catch (e) {
+		                // 适用于IE5.5，以及IE更早版本
+		                try{
+		                    xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+		                } catch (e){}
+		            }
+		        }            
+		        return xmlHttp;
+		    }
+			
+			// 自制的ajax发送方法
+			/* 参数说明：
+			 * 		method：请求方式（GET|POST）
+			 * 		url：请求的路径
+			 * 		data：发送的数据，如果没有请填上null
+			 * 		fun：需要进行ajax处理的方法
+			 * 			该方法需要接收一个参数xmlHttp
+			 */
+			function sendAjax(method, url, data, fun) {
+				
+				// 1. 打开链接
+				var xmlHttp = createXMLHttpRequest();
+				// open(method, url, async)参数详解：
+				//		method：请求方式，通常为GET或POST；
+				//		url：请求的服务器地址，例如：/ajaxdemo1/AServlet，若为GET请求，还可以在URL后追加参数；
+				//		async：这个参数可以不给，默认值为true，表示异步请求；
+				xmlHttp.open(method, url, true);
+				
+				
+				//	2. 利用send发送数据
+				// send()方法的参数为POST请求参数
+				// 注意：如果没有数据，需要发送null，否则可能会导致FireFox浏览器不能正常发送请求
+				xmlHttp.send(data);
+				
+				// 3. 当接收到参数后做的事
+				// 3.1 readyState的4种状态
+					// 0：初始化未完成状态，只是创建了XMLHttpRequest对象，还未调用open()方法；
+					// 1：请求已开始，open()方法已调用，但还没调用send()方法；
+					// 2：请求发送完成状态，send()方法已调用；
+					// 3：开始读取服务器响应；
+					// 4：读取服务器响应结束
+				
+				xmlHttp.onreadystatechange = function() {
+	            	if(xmlHttp.readyState == 4) {
+	                	fun(xmlHttp);
+	            	}
+	        	}
+			}
+			
+			
+			function ajaxHandel(xmlHttp) {
+				if (xmlHttp.status == 200) {
+					console.log(xmlHttp.responseText)
+				}
+			}
+			
+			sendAjax("GET", "http://127.0.0.1:9090/abc", null, ajaxHandel);
+			
+		</script>
+	</head>
+	<body>
+		<form action="http://127.0.0.1:9090/abcd" method="post">
+			<input type="text" name="username" id="username" value="" />
+			<input type="password" name="passwd" id="passwd" value="" />
+			<input type="submit" value="submitValue"/>
+		</form>
+		
+	</body>
+</html>
