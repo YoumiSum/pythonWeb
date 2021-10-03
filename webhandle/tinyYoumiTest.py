@@ -8,6 +8,7 @@ from youmiWeb_dynamicTool import route      # 需要导入这个模块
         method：POST | GET | ALL，不给默认为ALL，例如下面的返回json示例中就使用了缺省的ALL
         dataType：返回的数据格式，例如json, html，如果不确定，可以不写
                 此时如果是普通字符串，将以json数据处理，如果是.html结尾的字符串，将以html处理
+                或者返回的路径是包含在你写过的path中的，那么将同样当做路径处理
         注：如果图方便，可以不写method和path，就如同下面所示的最简约写法
         
     方法的说明：
@@ -67,5 +68,10 @@ def getIndex(argv):
 
 # 2. 返回json数据
 @route({'path': "test"})
-def getIndex(argv):
+def getHello(argv):
     return "Hello"
+
+# 3. 返回path动态路径
+@route({'path': "index2"})
+def getIndex2(argv):
+    return "index"
