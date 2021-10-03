@@ -79,8 +79,12 @@ class YoumiHttpServer(object):
         :return:
         """
         # 1. 获取客户端请求信息
-        recvData = clientSocket.recv(4096).decode("utf-8")
-        if recvData.strip() == "":
+        try:
+            recvData = clientSocket.recv(4096).decode("utf-8")
+            if recvData.strip() == "":
+                clientSocket.close()
+                return None
+        except:
             clientSocket.close()
             return None
 

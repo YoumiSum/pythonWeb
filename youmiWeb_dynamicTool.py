@@ -52,6 +52,31 @@ def route(data):
     # 返回一个装饰器
     return decorator
 
+def handleSub(item, httpVersion, clientSocket, postdata, cookie):
+    argv = {'parameter': postdata, 'cookie': cookie}
+    retData = item[3](argv)  # 调用fun，获取要返回的数据
+
+    # 如果返回的数据是以.html结尾，说明希望返回的是一个页面
+    if retData.endswith(".html"):
+        youmiWebTools.staticPageSend(clientSocket, retData, httpVersion, argv['cookie'])
+        return None
+
+    # 如果返回的路径是在路由列表里的，那么也代表返回一个页面
+    for it in route_list:
+        if retData == it[0]:
+            handleSub(it, httpVersion, clientSocket, postdata, argv['cookie'])
+            return None
+
+    # 否则按照其指定的数据处理
+    headData = youmiWebTools.httpHeadCreate(httpVersion=httpVersion,
+                                            fileType=item[2],
+                                            length=len(retData),
+                                            cookie=argv['cookie'])
+    clientSocket.send(headData.encode("utf-8"))
+    clientSocket.send(retData.encode("utf-8"))
+
+    return None
+
 
 def handle(method, urlPath, httpVersion, clientSocket, postdata, cookie):
     flag = False  # 利用flag来处理不存在的页面，以及method不匹配的页面
@@ -59,27 +84,7 @@ def handle(method, urlPath, httpVersion, clientSocket, postdata, cookie):
     for item in route_list:
         if urlPath == item[0]:
             if method == item[1] or item[1] == "ALL":
-                argv = {'parameter': postdata, 'cookie': cookie}
-                retData = item[3](argv)  # 调用fun，获取要返回的数据
-
-                # 如果返回的数据是以.html结尾，说明希望返回的是一个页面
-                if retData.endswith(".html"):
-                    youmiWebTools.staticPageSend(clientSocket, retData, httpVersion, argv['cookie'])
-                    return None
-
-                # 如果返回的路径是在路由列表里的，那么也代表返回一个页面
-                for it in route_list:
-                    if retData == it[0]:
-                        handle(method, retData, httpVersion, clientSocket, postdata, argv['cookie'])
-                        return None
-
-                # 否则按照其指定的数据处理
-                headData = youmiWebTools.httpHeadCreate(httpVersion=httpVersion,
-                                                        fileType=item[2],
-                                                        length=len(retData),
-                                                        cookie=argv['cookie'])
-                clientSocket.send(headData.encode("utf-8"))
-                clientSocket.send(retData.encode("utf-8"))
+                handleSub(item, httpVersion, clientSocket, postdata, cookie)
                 return None
             else:
                 # 利用日志打印method不匹配
