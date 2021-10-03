@@ -67,6 +67,12 @@ def handle(method, urlPath, httpVersion, clientSocket, postdata, cookie):
                     youmiWebTools.staticPageSend(clientSocket, retData, httpVersion, argv['cookie'])
                     return None
 
+                # 如果返回的路径是在路由列表里的，那么也代表返回一个页面
+                for it in route_list:
+                    if retData == it[0]:
+                        handle(method, retData, httpVersion, clientSocket, postdata, argv['cookie'])
+                        return None
+
                 # 否则按照其指定的数据处理
                 headData = youmiWebTools.httpHeadCreate(httpVersion=httpVersion,
                                                         fileType=item[2],
