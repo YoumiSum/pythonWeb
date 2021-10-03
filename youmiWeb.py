@@ -119,13 +119,8 @@ class YoumiHttpServer(object):
         # 2.3 只留下url
         urlPath = urlPath[0]
 
-        flag = False
-        for item in youmiWeb_dynamicTool.route_list:
-            if item[0] == urlPath:
-                flag = True
-                break
 
-        if flag:
+        if urlPath in [item[0] for item in youmiWeb_dynamicTool.route_list]:
             """ 动态页面处理 """
             youmiWeb_dynamicTool.handle(method, urlPath, httpVersion, clientSocket, lastLine, cookie)
         else:
