@@ -31,47 +31,54 @@ from lib.youmiWeb_dynamicTool import route      # 需要导入这个模块
 myCookie = "123"
 
 # 返回json数据示例
-@route({'path': "abc", 'dataType': "json"})
-def abcAjax(argv):
+@route(path="abc", dataType="json")
+def abcAjax(httpRequest):
     return json.dumps("Hello", ensure_ascii=False)
 
 
 # 返回一个页面示例
-@route({'path': "abcd", 'method': "POST", 'dataType': "html"})
-def abcAjax(argv):
-    print(argv['parameter'])     # username=youmi&passwd=123
+@route(path="abcd", method="POST", dataType="html")
+def abcAjax(httpRequest):
+    print(httpRequest.name)     # username=youmi&passwd=123
 
     global myCookie
-    print("cookie: ", myCookie)
-    argv['cookie'] = str(myCookie)       # 设置cookie
+    httpRequest.cookie = str(myCookie)       # 设置cookie
 
-    return "web/success.html"
+    return "../web/success.html"
 
-@route({'path': "getCookie", 'dataType': "json"})
-def getCookie(argv):
+@route(path="getCookie", dataType="json")
+def getCookie(httpRequest):
 
     global myCookie
     # 如果cookie失效，则返回错误页面
-    if argv['cookie'] == None or argv['cookie'] != myCookie:
+    if httpRequest.cookie == None or httpRequest.cookie != myCookie:
         return "web/cookieFail.html"
 
-    return argv['cookie']
+    return httpRequest.cookie
 
 
 """
 最简约写法
 """
 # 1. 返回一个页面
-@route({'path': "index"})
-def getIndex(argv):
-    return "web/index.html"
+@route("index")
+def getIndex(httpRequest):
+    return "/web/index.html"
 
 # 2. 返回json数据
-@route({'path': "test"})
-def getHello(argv):
+@route("test")
+def getHello(httpRequest):
     return "Hello"
 
 # 3. 返回path动态路径
-@route({'path': "index2"})
-def getIndex2(argv):
+@route("index2")
+def getIndex2(httpRequest):
     return "index"
+
+@route("index3/<abc>/<bcd>/abc")
+def test3(httpRequest):
+    print(httpRequest.abc)
+    print(httpRequest.bcd)
+
+    return "index"
+

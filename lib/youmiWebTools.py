@@ -1,6 +1,6 @@
 import time
 import os
-from conf import youmiWebConfig
+import lib.youmiWebConfig as youmiWebConfig
 
 
 def httpHeadCreate(httpVersion="HTTP/1.1", fileType=None, cookie=None, length=None, lastModofyTime=None):
@@ -23,7 +23,6 @@ def httpHeadCreate(httpVersion="HTTP/1.1", fileType=None, cookie=None, length=No
 
     # 拼接第三行服务器信息
     headData += "Server: Youmi\r\n"
-
 
     # 拼接跨域允许
     if youmiWebConfig.accessControl:
@@ -65,7 +64,7 @@ def httpHeadCreate(httpVersion="HTTP/1.1", fileType=None, cookie=None, length=No
             break
     # 如果遍历结束后还是找不到这种类型，就让其等于默认类型
     if not flag:
-        fileType = fileType[0][1]
+        fileType = youmiWebConfig.contentType[0][1]
 
     # 拼接文件类型
     headData += f"Content-Type: {fileType}\r\n"
@@ -84,21 +83,25 @@ def staticPageSend(clientSocket, urlPath, httpVersion="HTTP/1.1", cookie=None):
     :param httpVersion:     http版本，不填默认 HTTP/1.1
     :return:
     """
+
     # 获取文件的类型信息
     fileType = urlPath.split('.')
     fileType = fileType[len(fileType) - 1]
     headData = httpHeadCreate(httpVersion=httpVersion,
                               fileType=fileType,
-                              length=os.path.getsize(urlPath),
+                              length=os.stat(urlPath).st_size,
                               lastModofyTime=os.path.getmtime(urlPath),
                               cookie=cookie)
     clientSocket.send(headData.encode("utf-8"))
 
     # 打开文件
     file = open(urlPath, mode="rb")
+    length = 0
     while True:
         sendData = file.read(1024)
-        if (len(sendData) == 0): break
+        length += len(sendData)
+        if (len(sendData) == 0):
+            break
         # 发送数据
         clientSocket.send(sendData)
     file.close()

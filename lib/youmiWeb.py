@@ -1,14 +1,11 @@
+import os
 import socket
 import threading
 import signal
 
-from .youmiWeb_dynamicTool import *
+import lib.youmiWebConfig as youmiWebConfig
 
-# 设置日志等级和输出日志格式
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
-                    filename=youmiWebConfig.logingFile,
-                    filemode="a")
+from .youmiWeb_dynamicTool import *
 
 
 class YoumiHttpServer(object):
@@ -28,8 +25,8 @@ class YoumiHttpServer(object):
             youmiWebConfig.delFun()
 
         # 3. 打印结束信息并退出
-        logging.info("YoumiWebServer关闭")
-        print("\n晚安，主人(*^▽^*)")
+        logging.info("YoumiWebServer close")
+        print("\ngood night")
         sys.exit(0)
 
     def __init__(self):
@@ -44,6 +41,12 @@ class YoumiHttpServer(object):
 
         if youmiWebConfig.initFun != None:
             youmiWebConfig.initFun()
+
+        # 设置日志等级和输出日志格式
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
+                            filename=youmiWebConfig.logingFile,
+                            filemode="a")
 
         # 1. 创建套接字文件
         self.tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,7 +92,7 @@ class YoumiHttpServer(object):
         # 2.2 post方法还需要最后一行传递进来的数据
         firstLine = recvData[0]
         firstLine = firstLine.split(" ")  # 示例数据：['GET', '/web/test.html', 'HTTP/1.1']
-        lastLine = recvData[len(recvData) - 1]  # 示例数据：username=0313021803501&passwd=123456
+        requestdata = recvData[len(recvData) - 1]  # 示例数据：username=0313021803501&passwd=123456
         method, urlPath, httpVersion = firstLine  # 解包
         # 获取cookie信息，如果有的话
         cookie = None
@@ -99,38 +102,38 @@ class YoumiHttpServer(object):
                 break
 
         # 2.1 去除urlPath的第一个斜杠
-        urlPath = list(urlPath)
-        urlPath.pop(0)
-        urlPath = ''.join(urlPath)
+        urlPath = urlPath[1:len(urlPath)]
         # 2.1 去除get中带?请求数据
         urlPath = urlPath.split('?')
         # 2.2 拼接get方式的数据
         if len(urlPath) >= 2:
-            if lastLine == "":
-                lastLine += urlPath[1]
+            if requestdata == "":
+                requestdata += urlPath[1]
             else:
-                lastLine = lastLine + "&" + urlPath[1]
+                requestdata = requestdata + "&" + urlPath[1]
         # 2.3 只留下url
         urlPath = urlPath[0]
 
+        if dynamicHandle(method, urlPath, httpVersion, clientSocket, requestdata, cookie):
 
-        if urlPath in [item[0] for item in route_list]:
-            """ 动态页面处理 """
-            dynamicHandle(method, urlPath, httpVersion, clientSocket, lastLine, cookie)
-        else:
             """ 静态页面处理 """
             # 配置首页
-            if urlPath == "":
+            if urlPath == "" or urlPath.startswith("index") or youmiWebConfig.indexPage.endswith(urlPath):
                 urlPath = youmiWebConfig.indexPage
 
-            # 如果是html，则判断该资源是否能被放行
-            if urlPath.endswith(".html"):
-                if urlPath not in youmiWebConfig.staticPages:
-                    urlPath = youmiWebConfig.nofindPage
+            # 判断该资源是否能被放行
+            elif youmiWebConfig.staticPagesProg.match(urlPath) is None:
+                urlPath = youmiWebConfig.nofindPage
+
+            else:
+                urlPath = os.path.join(youmiWebConfig.rootPath, urlPath)
+                if sys.platform == "win32":
+                    urlPath = urlPath.replace("\\", "/")
 
             # 判断文件是否存在
-            if not os.path.exists(urlPath):
-                urlPath = youmiWebConfig.nofindPage
+            if urlPath.endswith(".html"):
+                if not os.path.exists(urlPath):
+                    urlPath = youmiWebConfig.nofindPage
 
             # 调用静态页面处理函数处理
             staticPageSend(clientSocket, urlPath, httpVersion)
@@ -143,7 +146,7 @@ class YoumiHttpServer(object):
         程序入口
         :return:
         """
-        print("起床很累的o(╥﹏╥)o")
+        print("good morning")
         logging.info("YoumiWebServer启动")
         while True:
             # 1. 接收等待客户端的链接

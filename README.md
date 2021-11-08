@@ -1,17 +1,45 @@
 # pythonWeb
-一个自制的python web框架，目前刚创建，使用过程中遇到问题可以及时反馈给我哦，我在每个月的1号都会进行查看，
-感谢开源社区的每一位小伙伴
+A WAF of python
+```commandline
+Because only myself would maintenance this application in now,
+And I have work need to do in my live, So I only will check 
+all comment in first day of ever month. And if you have some 
+good ideas, you can feed feedback, and thank you very much 
+at first.
+```
+```buildoutcfg
+Version: 0.0.3
+patch: None
+Author: Youmi
+Contact Information:
+    QQ: 1281124008
+Licence: 
+    you can do anything you want.
+    and if you feedback and help us update or fix this application, 
+    you can wirte your name in this file.
+```
 
-实现功能：微web框架
+```buildoutcfg
+How to use it
+    1. we support two kinds of path
+        absolute path: start with "/", such as /readme.txt
+            absolute path means the path is start from the root path of the project.
+            Example in the project, it start from /home/youmi/workspace/pythonWeb
+        reference path: not start with "/", such as readme.txt
+            it means the path is reference the path of the file you use now.
 
-Python最低版本：3以上
+    2. you must config the server at first in /conf/youmiweb_config.ini
 
-框架版本：1.0
+    3. There is one example can show you how to use it, see:
+        /webhandle/tinyYoumiTest.py
 
-补丁：暂无
+    3. How to start
+        if you have config this application finish, you only need to run the file(/bin/linkstart)
+```
 
-作者：Youmi
+more  details see readme.mp4
 
-联系方式：QQ(1281124008)
-
-更多使用的介绍参考readme.txt
+# Helper
+```commandline
+Youmi
+```
