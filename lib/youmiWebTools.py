@@ -1,6 +1,8 @@
 import time
 import os
+
 import lib.youmiWebConfig as youmiWebConfig
+import conf.log_dict_config as logging
 
 
 def httpHeadCreate(httpVersion="HTTP/1.1", fileType=None, cookie=None, length=None, lastModofyTime=None):
@@ -85,23 +87,34 @@ def staticPageSend(clientSocket, urlPath, httpVersion="HTTP/1.1", cookie=None):
     """
 
     # 获取文件的类型信息
-    fileType = urlPath.split('.')
-    fileType = fileType[len(fileType) - 1]
-    headData = httpHeadCreate(httpVersion=httpVersion,
-                              fileType=fileType,
-                              length=os.stat(urlPath).st_size,
-                              lastModofyTime=os.path.getmtime(urlPath),
-                              cookie=cookie)
-    clientSocket.send(headData.encode("utf-8"))
+    try:
+        fileType = urlPath.split('.')
+        fileType = fileType[len(fileType) - 1]
+        headData = httpHeadCreate(httpVersion=httpVersion,
+                                  fileType=fileType,
+                                  length=os.stat(urlPath).st_size,
+                                  lastModofyTime=os.path.getmtime(urlPath),
+                                  cookie=cookie)
+        clientSocket.send(headData.encode("utf-8"))
+    except FileNotFoundError:
+        logging.logger.warning("file not find: %s" % urlPath)
+        return None
 
-    # 打开文件
-    file = open(urlPath, mode="rb")
-    length = 0
-    while True:
-        sendData = file.read(1024)
-        length += len(sendData)
-        if (len(sendData) == 0):
-            break
-        # 发送数据
-        clientSocket.send(sendData)
-    file.close()
+    try:
+        # 打开文件
+        file = open(urlPath, mode="rb")
+        length = 0
+        while True:
+            sendData = file.read(1024)
+            length += len(sendData)
+            if (len(sendData) == 0):
+                break
+            # 发送数据
+            clientSocket.send(sendData)
+        file.close()
+    except:
+        logging.logger.critical("UNKNOWN ERROR!!!")
+    finally:
+        file.close()
+
+

@@ -4,6 +4,7 @@ import threading
 import signal
 
 import lib.youmiWebConfig as youmiWebConfig
+import conf.log_dict_config as logging
 
 from .youmiWeb_dynamicTool import *
 
@@ -21,12 +22,12 @@ class YoumiHttpServer(object):
         self.tcpServer.close()
 
         # 2. 执行用户关闭函数
-        if youmiWebConfig.delFun != None:
-            youmiWebConfig.delFun()
-
+        for item in youmiWebConfig.functions:
+            if item != None:
+                item.databaseClose()
         # 3. 打印结束信息并退出
-        logging.info("YoumiWebServer close")
-        print("\ngood night")
+        print("good night")
+        logging.logger.info("Server close")
         sys.exit(0)
 
     def __init__(self):
@@ -38,15 +39,6 @@ class YoumiHttpServer(object):
         # 0.2 动态导入dynamicModule
         for item in youmiWebConfig.dynamicModule:
             __import__(item, fromlist=True)
-
-        if youmiWebConfig.initFun != None:
-            youmiWebConfig.initFun()
-
-        # 设置日志等级和输出日志格式
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
-                            filename=youmiWebConfig.logingFile,
-                            filemode="a")
 
         # 1. 创建套接字文件
         self.tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -147,7 +139,7 @@ class YoumiHttpServer(object):
         :return:
         """
         print("good morning")
-        logging.info("YoumiWebServer启动")
+        logging.logger.info("Server start")
         while True:
             # 1. 接收等待客户端的链接
             clientSocket, IPPort = self.tcpServer.accept()

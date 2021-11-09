@@ -3,6 +3,7 @@ import sys
 import re
 
 import lib.youmiWebConfig as youmiWebConfig
+import conf.log_dict_config as logging
 
 from .youmiWebTools import *
 from .httpRequest import HttpRequest
@@ -139,8 +140,5 @@ def dynamicHandle(method, urlPath, httpVersion, clientSocket, requestdata, cooki
             if method == item[1] or item[1] == "ALL":
                 handleSub(item, httpVersion, clientSocket, httpRequest)
                 return False
-            else:
-                # 利用日志打印method不匹配
-                logging.info(f"{urlPath}: not match method")
 
     return True

@@ -1,3 +1,5 @@
+# this file is an sample, don't do any change in here
+
 import re
 
 rootPath = ""       # 项目根目录
@@ -6,13 +8,10 @@ serverIP = ""       # 配置服务器的IP地址，不写为本机默认IP
 serverPort = 9090   # 服务器的端口号设置
 sevrverPool = 1024  # 一次性能接收的最大链接数量
 accessControl = False        # 是否开启跨域请求（True | False）
-logingFile = "../log.txt"       # 指定日志文件名
 indexPage = ".../web/index.html"           # 配置首页，建议不添加"./"，这样可以方便staticPages的配置
 nofindPage = "../web/404notFind.html"      # 配置404页面的路径，同indexPage，建议不加"./"
 
-from .mysqlTools import *
-initFun = databaseInit
-delFun = databaseClose
+functions = []
 
 """
     动态模块

@@ -6,14 +6,18 @@ import sys
 import lib.mysqlTools
 import lib.youmiWebConfig as youmiWebConfig
 import lib.databaseConfig as databaseConfig
+import conf.log_dict_config as logging
 
 from lib.youmiWeb import YoumiHttpServer
 
-databaseList = [{"name": "mysql",
-                "init": lib.mysqlTools.databaseInit,
-                "close": lib.mysqlTools.databaseClose
+databaseList = [{"name": "None",
+                 "func": None,
+                 },
+                {"name": "mysql",
+                "func": lib.mysqlTools.Database(),
                  }
                 ]
+
 
 def init():
     # config web server base
@@ -29,20 +33,6 @@ def init():
     youmiWebConfig.serverIP = config.get("webserver-base", "host")
     youmiWebConfig.serverPort = config.getint("webserver-base", "port")
     youmiWebConfig.accessControl = config.getboolean("webserver-base", "accessControl")
-
-    loggingFile = config.get("webserver-base", "loging")
-    if loggingFile == "None":
-        youmiWebConfig.logingFile = None
-    else:
-        loggingFile = loggingFile.split("/")
-        if not len(loggingFile[0]):
-            loggingFile[0] = youmiWebConfig.rootPath
-        for index in range(len(loggingFile)):
-            if index != 0:
-                loggingFile[0] = os.path.join(loggingFile[0], loggingFile[index])
-        youmiWebConfig.logingFile = loggingFile[0]
-        if sys.platform == "win32":
-            youmiWebConfig.logingFile = youmiWebConfig.logingFile.replace("\\", "/")
 
     indexPage = config.get("webserver-base", "indexPage")
     if indexPage == "None":
@@ -145,37 +135,47 @@ def init():
 
 
     # config database
+    def initSub_database(section):
+        try:
+            databaseConfig.database_host = config.get(section, "host")
+            databaseConfig.database_port = config.getint(section, "port")
+            databaseConfig.database_user = config.get(section, "user")
+            databaseConfig.database_password = config.get(section, "password")
+            databaseConfig.database_basename = config.get(section, "basename")
+            databaseConfig.database_charset = config.get(section, "charset")
+        except:
+            logging.logger.warning("don't have database")
 
-    database = config.get("database", "database")
-    global databaseList
-    for item in databaseList:
-        if item["name"] == database:
-            youmiWebConfig.initFun = item["init"]
-            youmiWebConfig.delFun = item["close"]
-            break
+        database = config.get(section, "database")
+        global databaseList
+        for item in databaseList:
+            if item["name"] == database:
+                youmiWebConfig.functions.append(item["func"])
+                if youmiWebConfig.functions[-1] is not None:
+                    youmiWebConfig.functions[-1].databaseInit()
+                break
 
-    databaseConfig.database_host = config.get("database", "host")
-    databaseConfig.database_port = config.getint("database", "port")
-    databaseConfig.database_user = config.get("database", "user")
-    databaseConfig.database_password = config.get("database", "password")
-    databaseConfig.database_basename = config.get("database", "basename")
-    databaseConfig.database_charset = config.get("database", "charset")
+
+    databases = re.compile("^\[database.*\]$")
+    sections = []
+    with open(youmiwebConfigPath, "r") as f:
+        while True:
+            line = f.readline()
+            if len(line) == 0:
+                break
+            line = line.strip()
+            section = databases.match(line)
+            if section is not None:
+                sections.append(section.group()[1:len(section.group())-1])
+
+    for section in sections:
+        initSub_database(section)
+
+
 
 
 if __name__ == '__main__':
     init()
     YoumiHttpServer().start()
-
-
-
-
-
-
-
-
-
-
-
-
 
 
